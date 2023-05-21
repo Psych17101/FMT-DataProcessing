@@ -40,6 +40,24 @@ M = 0.05;
 wind_velocities = avg_velocities .* pixel_size ./ delta_t;
 
 
+% Define the grid for the flow field plot
+[X, Y] = meshgrid(1:size(im1, 2), 1:size(im1, 1));
+
+% Plot the flow field using quiver
+figure;
+quiver(X, Y, velocities(:,:,1), velocities(:,:,2));
+
+% Set axis labels and title
+xlabel('X');
+ylabel('Y');
+title('Flow Field');
+
+% Adjust the axis limits if needed
+% xlim([xmin, xmax]);
+% ylim([ymin, ymax]);
+
+
+
 function [x, y] =find_correlation(im1_win,im2_win)
 
 end
