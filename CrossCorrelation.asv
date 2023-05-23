@@ -1,7 +1,4 @@
 % Load the two images to be analyzed
-clear;
-close all;
-
 im = imread('Pic1.tif');
 im1 = im(1:end/2, :);
 im2 = im(end/2+1:end, :);
@@ -26,17 +23,17 @@ for i = 1:win_size:size(im1,1)-win_size
         % Perform cross-correlation analysis to find the position of the correlation peak
         [x_offset, y_offset,x_peak,y_peak,correlation,peak_index] = find_correlation(im1_win, im2_win); % write this function later
      
-%         figure(3)
-%         surf(correlation)
-%         A = correlation(:,y_peak);
-%         figure(4)
-%         plot(1:63,A)
-%         B = correlation(x_peak,:);
-%         figure(5)
-%         plot(1:63,B')
+        figure(3)
+        surf(correlation)
+        A = correlation(:,y_peak);
+        figure(4)
+        plot(1:63,A)
+        B = correlation(x_peak,:);
+        figure(5)
+        plot(1:63,B')
 
         % Use sub-pixel interpolation with a Gaussian fit to refine the peak position
-        [x_subpix,y_subpix] = subpixel_int(correlation,x_peak,y_peak,x_offset,y_offset); % write this function later
+        [x_subpix,y_subpix] = subpixel_int(correlation,x_peak,y_peak); % write this function later
         
         % Calculate the velocity vector for this interrogation window
         [u, v] = calculate_velocity(x_subpix, y_subpix, win_size); % write this function later
@@ -61,7 +58,7 @@ wind_velocities = avg_velocities .* pixel_size ./ delta_t;
 
 
 % Define the grid for the flow field plot
-[X, Y] = meshgrid(1:size(im1, 2), 1:size(im1, 1))
+[X, Y] = meshgrid(1:size(im1, 2), 1:size(im1, 1));
 
 % Plot the flow field using quiver
 figure;
@@ -88,7 +85,7 @@ function [x, y,x_peak,y_peak,correlation,peak_index] = find_correlation(im1_win,
     y = y_peak - size(im1_win,2);
 end
 
-function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offset,y_offset)
+function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak)
     maxi = correlation(x_peak, y_peak);
     
     maxi_0x = correlation(x_peak + 1, y_peak);
@@ -111,45 +108,45 @@ function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offse
     gaussEqn = 'a*exp(-((x-b)/c)^2)';
     fitresult = fit(x',z_1',gaussEqn,'Upper',[maxi,10,10]);
     % Extract the fitted parameters
-    A_x = fitresult.a;
-    mu_x = fitresult.b;
-    sigma_x = fitresult.c;
+    A = fitresult.a;
+    mu = fitresult.b;
+    sigma = fitresult.c;
 
-%     % Plot the data and the fitted curve
-%     figure(7)
-%     plot(x, z_1, 'o', 'DisplayName', 'Data');
-%     hold on;
-%     x_fit = linspace(0, 4, 1000);
-%     y_fit = feval(fitresult, x_fit);
-%     plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
-%     legend('Location', 'best');
-%     xlabel('x');
-%     ylabel('z_1');
-%     title('Gaussian Curve Fitting');
-%     hold off;
+    % Plot the data and the fitted curve
+    figure(7)
+    plot(x, z_1, 'o', 'DisplayName', 'Data');
+    hold on;
+    x_fit = linspace(0, 4, 1000);
+    y_fit = feval(fitresult, x_fit);
+    plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
+    legend('Location', 'best');
+    xlabel('x');
+    ylabel('z_1');
+    title('Gaussian Curve Fitting');
+    hold off;
 
-    x_subpix = x_offset + mu_x - 1; 
+    x_subpix = mu - 1; 
     
-%     figure(8)
-    fitresult = fit(y',z_2',gaussEqn,'Upper',[maxi,2,2]);
+    figure(8)
+    fitresult = fit(y',z_2',gaussEqn,'Upper',[maxi,2,2])
     % Extract the fitted parameters
-    A_y = fitresult.a;
-    mu_y = fitresult.b;
-    sigma_y = fitresult.c;
+    A = fitresult.a;
+    mu = fitresult.b;
+    sigma = fitresult.c;
 
-%     % Plot the data and the fitted curve
-%     plot(y, z_2, 'o', 'DisplayName', 'Data');
-%     hold on;
-%     x_fit = linspace(0, 4, 1000);
-%     y_fit = feval(fitresult, x_fit);
-%     plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
-%     legend('Location', 'best');
-%     xlabel('x');
-%     ylabel('z_1');
-%     title('Gaussian Curve Fitting');
-%     hold off;
-%     
-     y_subpix = y_offset + mu_y - 1;
+    % Plot the data and the fitted curve
+    plot(y, z_2, 'o', 'DisplayName', 'Data');
+    hold on;
+    x_fit = linspace(0, 4, 1000);
+    y_fit = feval(fitresult, x_fit);
+    plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
+    legend('Location', 'best');
+    xlabel('x');
+    ylabel('z_1');
+    title('Gaussian Curve Fitting');
+    hold off;
+    
+    y_subpix = y_
 
 end
 
@@ -167,7 +164,7 @@ end
 function [u, v] = calculate_velocity(x_subpix,y_subpix,win_size)
 pitch = 4e-6;
 M = 0.05;
-t = 74e-6; % may not be right
+t = 74e-3; % may not be right
 u = x_subpix.*pitch./(M.*t);
 v = y_subpix.*pitch./(M.*t);
 
