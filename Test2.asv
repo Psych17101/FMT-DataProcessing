@@ -12,7 +12,7 @@ im = imread('Pic1.tif');
 img1 = im(1:end/2, :);
 img2 = im(end/2+1:end, :);
 
-img1 = imread(''); %Input 1st frame
+% img1 = imread(''); %Input 1st frame
 % img2 = imread('a2.jpg'); %Input 2nd frame
 
 icorr=0;            %Number of Correction Cycle
@@ -24,8 +24,8 @@ sw=70; %Search Windows Sizes (sw > iw) (pixel)
 iw=2*round(iw/2)-1; %Even->Odd
 sw=2*round(sw/2)-1;
 
-scale=1;  %spatial scale (unit = m/pixel)
-tscale=1; %time step = 1/frame_rate (unit= s/frame)
+scale=4.;  %spatial scale (unit = m/pixel)
+tscale=1.0; %time step = 1/frame_rate (unit= s/frame)
 
 
 %Converting RGB to Grayscale if need be:

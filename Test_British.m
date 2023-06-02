@@ -1,8 +1,3 @@
-%!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!%
-%       Particle Image Velocimetry (PIV) code!           %
-%      Developed by A. F. Forughi (March, 2014)          %
-%   Mech. Eng Dept., The University of British Columbia  %
-%!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!%
 
 clc
 clear all;
@@ -12,23 +7,20 @@ im = imread('Pic1.tif');
 img1 = im(1:end/2, :);
 img2 = im(end/2+1:end, :);
 
-img1 = imread(''); %Input 1st frame
-% img2 = imread('a2.jpg'); %Input 2nd frame
-
 icorr=0;            %Number of Correction Cycle
 Rlimit=0.4;         %Minimum valid R:
 
-iw=31; %Interrodation Windows Sizes (pixel)
-sw=70; %Search Windows Sizes (sw > iw) (pixel)
+int_win=31; %Interrodation Windows Sizes (pixel)
+search_win=70; %Search Windows Sizes (search_win > int_win) (pixel)
 
-iw=2*round(iw/2)-1; %Even->Odd
-sw=2*round(sw/2)-1;
+int_win=2*round(int_win/2)-1; %Even->Odd
+search_win=2*round(search_win/2)-1;
 
-scale=1;  %spatial scale (unit = m/pixel)
-tscale=1; %time step = 1/frame_rate (unit= s/frame)
+scale=4.40e-6;  %spatial scale (unit = m/pixel)
+tscale=73e-6; %time step = 1/frame_rate (unit= s/frame)
 
 
-%Converting RGB to Grayscale if need be:
+%% Converting RGB to Grayscale if need be:
 sz=size(size(img1));
 if sz(2)>=3 %RGB
     a1 = double(img1(:,:,1)+img1(:,:,2)+img1(:,:,3))/3.0;
@@ -43,51 +35,53 @@ b=flip(a2',2);
 [ia,ja] = size(a);
 
 
-%Calculating Size of Matrices:
-im=2*floor((ia-iw)/(iw-1)); %Number of I.W.s in x direction
-jm=2*floor((ja-iw)/(iw-1)); %Number of I.W.s in y direction
+%% Calculating Size of Matrices:
+im=2*floor((ia-int_win)/(int_win-1)); %Number of I.W.s in x direction
+jm=2*floor((ja-int_win)/(int_win-1)); %Number of I.W.s in y direction
 
 vecx(1:im,1:jm)=0.;%x-Displacement
 vecy(1:im,1:jm)=0.;%y-Displacement
 vec(1:im,1:jm)=0.; %Magnification
 rij(1:im,1:jm)=0.; %Correlation coeff.
-R(1:sw-iw+1,1:sw-iw+1)=0.; %Correlation Matrix
-margin=1;%floor((sw-iw)/floor(iw-1)+2);
+R(1:search_win-int_win+1,1:search_win-int_win+1)=0.; %Correlation Matrix
+% R matrix here is 40x40
+margin=1;%floor((search_win-int_win)/floor(int_win-1)+2);
 
 for j=1:jm % ID of I.W. in j
     for i=1:im % ID of I.W. in i
-        i1=(i-1)*(iw-1)/2+1;  %left bound
-        ii1=i1+iw;  %right bound
-        j1=(j-1)*(iw-1)/2+1;  %bottom bound
-        jj1=j1+iw;  %top bound
+        i1=(i-1)*(int_win-1)/2+1;  %left bound
+        ii1=i1+int_win;  %right bound
+        j1=(j-1)*(int_win-1)/2+1;  %bottom bound
+        jj1=j1+int_win;  %top bound
         
         %Searching:
-        R(1:sw-iw+1,1:sw-iw+1)=-1.0;
-        for jj=1:sw-iw+1  % j-search
-            for ii=1:sw-iw+1  % i-search
-                if ((i1+ii-(sw-iw)/2-1>=1)&&(ii1+ii-(sw-iw)/2-1<=ia)&&(j1+jj-(sw-iw)/2-1>=1)&&(jj1+jj-(sw-iw)/2-1<=ja))
-                    R(ii,jj)=corr2(b(i1+ii-(sw-iw)/2-1:ii1+ii-(sw-iw)/2-1,j1+jj-(sw-iw)/2-1:jj1+jj-(sw-iw)/2-1),a(i1:ii1,j1:jj1));
+        R(1:search_win-int_win+1,1:search_win-int_win+1)=-1.0;
+
+        for jj=1:search_win-int_win+1  % j-search
+            for ii=1:search_win-int_win+1  % i-search
+                if ((i1+ii-(search_win-int_win)/2-1>=1) && (ii1+ii-(search_win-int_win)/2-1<=ia)&&(j1+jj-(search_win-int_win)/2-1>=1)&&(jj1+jj-(search_win-int_win)/2-1<=ja))
+                    R(ii,jj)=corr2(b(i1+ii-(search_win-int_win)/2-1:ii1+ii-(search_win-int_win)/2-1,j1+jj-(search_win-int_win)/2-1:jj1+jj-(search_win-int_win)/2-1),a(i1:ii1,j1:jj1));
                 end
             end
         end
-        
+
         R(isnan(R)==1)=-1; %Removing NaN(s)
         %Finding Location of maximum R
         [maxR,Y]=max(max(R));   %Y:location of maximum R
         [maxR,X]=max(max(R'));  %X:location of maximum R
         
         if (maxR>=Rlimit)   %condition for removing unacceptable R coefficients
-            if ((X<=1)||(Y<=1)||(X>=(sw-iw+1))||(Y>=(sw-iw+1)))
-                vecx(i,j)=X-(sw-iw)/2-1;
-                vecy(i,j)=Y-(sw-iw)/2-1;
+            if ((X<=1)||(Y<=1)||(X>=(search_win-int_win+1))||(Y>=(search_win-int_win+1)))
+                vecx(i,j)=X-(search_win-int_win)/2-1;
+                vecy(i,j)=Y-(search_win-int_win)/2-1;
             else
                 c=(R(X+1,Y)+R(X-1,Y)-2*R(X,Y))*(R(X,Y+1)+R(X,Y-1)-2*R(X,Y)); %(zero check!)
                 if (c==0.)
-                    vecx(i,j)=X-(sw-iw)/2-1;
-                    vecy(i,j)=Y-(sw-iw)/2-1;
+                    vecx(i,j)=X-(search_win-int_win)/2-1;
+                    vecy(i,j)=Y-(search_win-int_win)/2-1;
                 else
-                    vecx(i,j)=X-(sw-iw)/2-1-(R(X+1,Y)-R(X-1,Y))/(2*(R(X+1,Y)+R(X-1,Y)-2*R(X,Y)));
-                    vecy(i,j)=Y-(sw-iw)/2-1-(R(X,Y+1)-R(X,Y-1))/(2*(R(X,Y+1)+R(X,Y-1)-2*R(X,Y)));
+                    vecx(i,j)=X-(search_win-int_win)/2-1-(R(X+1,Y)-R(X-1,Y))/(2*(R(X+1,Y)+R(X-1,Y)-2*R(X,Y)));
+                    vecy(i,j)=Y-(search_win-int_win)/2-1-(R(X,Y+1)-R(X,Y-1))/(2*(R(X,Y+1)+R(X,Y-1)-2*R(X,Y)));
                 end
             end
         else    %Low R:
@@ -120,14 +114,13 @@ for ii=1:icorr %Correction Cycle
         end
     end
 end
-
 %% Exporting:
 % Applying spatiotemporal scales:
 x(1:im,1:jm)=0.;y(1:im,1:jm)=0.;u(1:im,1:jm)=0.;v(1:im,1:jm)=0.;vel(1:im,1:jm)=0.;
 for j=1:jm
     for i=1:im
-        x(i,j)=(i*(iw-1)/2)*scale;
-        y(i,j)=(j*(iw-1)/2)*scale;
+        x(i,j)=(i*(int_win-1)/2)*scale;
+        y(i,j)=(j*(int_win-1)/2)*scale;
         u(i,j)=vecx(i,j)*scale/tscale;
         v(i,j)=vecy(i,j)*scale/tscale;
         vel(i,j)=vec(i,j)*scale/tscale;
@@ -142,8 +135,8 @@ figure
 quiver (x, y, u, v,'black');
 
 %Statistics:
-disp(['IW= ', num2str(iw)]);
-disp(['SW= ', num2str(sw)]);
+disp(['int_win= ', num2str(int_win)]);
+disp(['search_win= ', num2str(search_win)]);
 disp('******************************************')
 disp(['Rlimit= ', num2str(Rlimit)])
 disp(['iCorr= ', num2str(icorr)]);
