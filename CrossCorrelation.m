@@ -24,7 +24,7 @@ iterx = 1;
 % Loop over all interrogation windows
 for i = 1:win_size:size(im1,1)-win_size % y axis
     iterx ;
-    for j = 1:win_size:size(im1,2)-win_size %x axis 
+    for j = 1:win_size/2:size(im1,2)-win_size %x axis 
         itery;
         % Extract the current interrogation window from both images
         im1_win = im1(i:i+win_size-1, j:j+win_size-1);
@@ -105,55 +105,60 @@ function [x, y,x_peak,y_peak,correlation,peak_index] = find_correlation(im1_win,
 end
 
 function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offset,y_offset)
-    maxi = correlation(x_peak, y_peak);
-    
-    if (x_peak < length(correlation) && x_peak < length(correlation)-1)&& x_peak > 2 
-        maxi_0x = correlation(x_peak - 2, y_peak);
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = correlation(x_peak + 1, y_peak);
-        maxi_3x = correlation(x_peak + 2, y_peak);
-    elseif x_peak == length(correlation)
-        maxi_0x = correlation(x_peak - 2, y_peak);
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = 0;
-        maxi_3x = 0;
-    elseif x_peak < 2 && x_peak ~= 1
-        maxi_0x = 0;
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = 0;
-        maxi_3x = 0;
+    maxi = correlation(x_peak, y_peak);   
+    maxi_0x = correlation(x_peak - 2, y_peak);
+    maxi_1x = correlation(x_peak - 1, y_peak);
+    maxi_2x = correlation(x_peak + 1, y_peak);
+    maxi_3x = correlation(x_peak + 2, y_peak);
+    maxi_0y = correlation(x_peak, y_peak - 2);
+    maxi_1y = correlation(x_peak, y_peak - 1);
+    maxi_2y = correlation(x_peak, y_peak + 1);
+    maxi_3y = correlation(x_peak, y_peak + 2);
 
-    else
-        maxi_0x = 0;
-        maxi_1x = 0;
-        maxi_2x = 0;
-        maxi_3x = 0;
+%     if (x_peak < length(correlation) && x_peak < length(correlation)-1)&& x_peak > 2 
+%         maxi_0x = correlation(x_peak - 2, y_peak);
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = correlation(x_peak + 1, y_peak);
+%         maxi_3x = correlation(x_peak + 2, y_peak);
+%     elseif x_peak == length(correlation)
+%         maxi_0x = correlation(x_peak - 2, y_peak);
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+%     elseif x_peak < 2 && x_peak ~= 1
+%         maxi_0x = 0;
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+% 
+%     else
+%         maxi_0x = 0;
+%         maxi_1x = 0;
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+%     end
 
-
-    end
-
-    if (y_peak < length(correlation) && y_peak < length(correlation)-1) && y_peak > 2
-        maxi_0y = correlation(x_peak, y_peak - 2);
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = correlation(x_peak, y_peak + 1);
-        maxi_3y = correlation(x_peak, y_peak + 2);
-    elseif y_peak == length(correlation)
-        maxi_0y = correlation(x_peak, y_peak - 2);
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = 0;
-        maxi_3y = 0;
-     elseif y_peak < 2 && y_peak ~= 1
-        maxi_0y = 0;
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = 0;
-        maxi_3y = 0;
-    else
-        maxi_0y = 0;
-        maxi_1y = 0;
-        maxi_2y = 0;
-        maxi_3y = 0;
-
-    end
+%     if (y_peak < length(correlation) && y_peak < length(correlation)-1) && y_peak > 2
+%         maxi_0y = correlation(x_peak, y_peak - 2);
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = correlation(x_peak, y_peak + 1);
+%         maxi_3y = correlation(x_peak, y_peak + 2);
+%     elseif y_peak == length(correlation)
+%         maxi_0y = correlation(x_peak, y_peak - 2);
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%      elseif y_peak < 2 && y_peak ~= 1
+%         maxi_0y = 0;
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%     else
+%         maxi_0y = 0;
+%         maxi_1y = 0;
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%     end
 
     x = 0:4;
     z_1 = double([maxi_0x , maxi_1x, maxi, maxi_2x, maxi_3x]);

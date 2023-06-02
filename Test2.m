@@ -38,7 +38,9 @@ else   %GREYSCALE
     a1 = double(img1(:,:));
     a2 = double(img2(:,:));
 end
-a=flip(a1',2);b=flip(a2',2);[ia,ja] = size(a);
+a=flip(a1',2);
+b=flip(a2',2);
+[ia,ja] = size(a);
 
 
 %Calculating Size of Matrices:

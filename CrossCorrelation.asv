@@ -17,17 +17,17 @@ out_name = 'pic2_converted.png';   %the name of the desired output
 imwrite(im2, out_name);  %write it out
 
 % Define the size of the interrogation windows
-win_size = 64; % pixels
+win_size = 32; % pixels
 
 itery = 1;
 iterx = 1;
 % Loop over all interrogation windows
 for i = 1:win_size:size(im1,1)-win_size % y axis
-    iterx 
-    for j = 1:win_size/2:size(im1,2)-win_size/2 %x axis 
-        itery
+    iterx ;
+    for j = 1:win_size/2:size(im1,2)-win_size %x axis 
+        itery;
         % Extract the current interrogation window from both images
-        im1_win = im1(i:i+win_size-1, j:j+win_size/2-1);
+        im1_win = im1(i:i+win_size-1, j:j+win_size-1);
         im2_win = im2(i:i+win_size-1, j:j+win_size-1);
 
         % Perform cross-correlation analysis to find the position of the correlation peak
@@ -72,6 +72,22 @@ xlabel('X');
 ylabel('Y');
 title('Flow Field');
 
+% Calculate the magnitude of velocities
+magnitude = sqrt(velocities(:,:,1).^2 + velocities(:,:,2).^2);
+
+% Create a grid for the flow field plot
+[X, Y] = meshgrid(1:size(velocities,2), 1:size(velocities,1));
+
+% Create a figure and plot the heat map
+figure;
+pcolor(X, Y, magnitude);
+colorbar; % Add a colorbar to indicate velocity magnitude
+
+% Set axis labels and title
+xlabel('X');
+ylabel('Y');
+title('Velocity Magnitude Heat Map');
+
 % Adjust the axis limits if needed
 % xlim([xmin, xmax]);
 % ylim([ymin, ymax]);
@@ -91,53 +107,50 @@ end
 function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offset,y_offset)
     maxi = correlation(x_peak, y_peak);
     
-    if (x_peak < length(correlation) && x_peak < length(correlation)-1)&& x_peak > 2 
-        maxi_0x = correlation(x_peak - 2, y_peak);
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = correlation(x_peak + 1, y_peak);
-        maxi_3x = correlation(x_peak + 2, y_peak);
-    elseif x_peak == length(correlation)
-        maxi_0x = correlation(x_peak - 2, y_peak);
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = 0;
-        maxi_3x = 0;
-    elseif x_peak < 2 && x_peak ~= 1
-        maxi_0x = 0;
-        maxi_1x = correlation(x_peak - 1, y_peak);
-        maxi_2x = 0;
-        maxi_3x = 0;
+%     if (x_peak < length(correlation) && x_peak < length(correlation)-1)&& x_peak > 2 
+%         maxi_0x = correlation(x_peak - 2, y_peak);
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = correlation(x_peak + 1, y_peak);
+%         maxi_3x = correlation(x_peak + 2, y_peak);
+%     elseif x_peak == length(correlation)
+%         maxi_0x = correlation(x_peak - 2, y_peak);
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+%     elseif x_peak < 2 && x_peak ~= 1
+%         maxi_0x = 0;
+%         maxi_1x = correlation(x_peak - 1, y_peak);
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+% 
+%     else
+%         maxi_0x = 0;
+%         maxi_1x = 0;
+%         maxi_2x = 0;
+%         maxi_3x = 0;
+%     end
 
-    else
-        maxi_0x = 0;
-        maxi_1x = 0;
-        maxi_2x = 0;
-        maxi_3x = 0;
-
-
-    end
-
-    if (y_peak < length(correlation) && y_peak < length(correlation)-1) && y_peak > 2
-        maxi_0y = correlation(x_peak, y_peak - 2);
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = correlation(x_peak, y_peak + 1);
-        maxi_3y = correlation(x_peak, y_peak + 2);
-    elseif y_peak == length(correlation)
-        maxi_0y = correlation(x_peak, y_peak - 2);
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = 0;
-        maxi_3y = 0;
-     elseif y_peak < 2 && y_peak ~= 1
-        maxi_0y = 0;
-        maxi_1y = correlation(x_peak, y_peak - 1);
-        maxi_2y = 0;
-        maxi_3y = 0;
-    else
-        maxi_0y = 0;
-        maxi_1y = 0;
-        maxi_2y = 0;
-        maxi_3y = 0;
-
-    end
+%     if (y_peak < length(correlation) && y_peak < length(correlation)-1) && y_peak > 2
+%         maxi_0y = correlation(x_peak, y_peak - 2);
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = correlation(x_peak, y_peak + 1);
+%         maxi_3y = correlation(x_peak, y_peak + 2);
+%     elseif y_peak == length(correlation)
+%         maxi_0y = correlation(x_peak, y_peak - 2);
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%      elseif y_peak < 2 && y_peak ~= 1
+%         maxi_0y = 0;
+%         maxi_1y = correlation(x_peak, y_peak - 1);
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%     else
+%         maxi_0y = 0;
+%         maxi_1y = 0;
+%         maxi_2y = 0;
+%         maxi_3y = 0;
+%     end
 
     x = 0:4;
     z_1 = double([maxi_0x , maxi_1x, maxi, maxi_2x, maxi_3x]);
