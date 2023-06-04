@@ -62,12 +62,10 @@ for i = 1:win_size:size(im1,1)-win_size % y axis
         
         [u, v] = calculate_velocities(x_subpix, y_subpix, win_size); % write this function later
         
-  
-        u_n(iterx,itery) = u;
-        v_n(iterx,itery) = v;
-        u_new(iterx,floor((itery+1)/2)) = u;
-        v_new(iterx,floor((itery+1)/2)) = v;
-
+        if  
+            u_new(iterx,itery) = u;
+            v_new(iterx,itery) = v;
+        end
         % Store the velocity vector for this interrogation window
         velocities(i:i+win_size-1, j:j+win_size-1, 1) = u;
         velocities(i:i+win_size-1, j:j+win_size-1, 2) = v;
