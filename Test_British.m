@@ -134,6 +134,12 @@ colorbar;
 figure
 quiver (x, y, u, v,'black');
 
+figure
+contourf(x,y,vel(:,:));
+colormap(jet);
+colorbar;
+
+
 %Statistics:
 disp(['int_win= ', num2str(int_win)]);
 disp(['search_win= ', num2str(search_win)]);

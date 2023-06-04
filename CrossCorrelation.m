@@ -1,7 +1,7 @@
 % Load the two images to be analyzed
 clear;
 close all;
-
+tic
 im = imread('Pic1.tif');
 im1 = im(1:end/2, :);
 im1 = double(im1(:,:));
@@ -38,7 +38,7 @@ iterx = 1;
 perc = 0;
 fprintf('Entering Cycle \n')
 % Loop over all interrogation windows
-for i = 1:win_size:size(im1,1)-win_size % y axis
+for i = 1:win_size/2:size(im1,1)-win_size % y axis
     iterx ;
     for j = 1:win_size/2:size(im1,2)-win_size %x axis 
         itery;
@@ -61,24 +61,14 @@ for i = 1:win_size:size(im1,1)-win_size % y axis
         vec(i:i+win_size-1, j:j+win_size-1, 1) = x_subpix^2+y_subpix^2;
         
         [u, v] = calculate_velocities(x_subpix, y_subpix, win_size); % write this function later
-        
-  
-        u_n(iterx,itery) = u;
-        v_n(iterx,itery) = v;
-        u_new(iterx,floor((itery+1)/2)) = u;
-        v_new(iterx,floor((itery+1)/2)) = v;
-
+      
         % Store the velocity vector for this interrogation window
         velocities(i:i+win_size-1, j:j+win_size-1, 1) = u;
         velocities(i:i+win_size-1, j:j+win_size-1, 2) = v;
         vel(i:i+win_size-1, j:j+win_size-1) =vec(i:i+win_size-1, j:j+win_size-1)*scale/tscale;
-%       
-%         x(i:i+win_size-1, j:j+win_size-1) = double(((i:i+win_size-1)*(win_size-1)/2)*scale);
-%         y(i:i+win_size-1, j:j+win_size-1) = ((j:j+win_size-1)*(win_size-1)/2)*scale;
-        
 
         itery = itery + 1;
-        p = length(im1_win)*(length(im1_win)/2)/(length(im1(:,1))*length(im1(1,:)));
+        p = (length(im1_win)/2)*(length(im1_win)/2)/(length(im1(:,1))*length(im1(1,:)));
         perc = perc + p;
     end
 
@@ -90,21 +80,6 @@ fprintf('Done!')
 
 
 %%
-%Calculating Size of Matrices:
-[i_im,j_im] = size(im1);
-im=floor((i_im-win_size)/(win_size-1)); %Number of I.W.s in x direction
-jm=floor((j_im-win_size)/(win_size-1))-1; %Number of I.W.s in y direction
-
-x(1:im,1:jm)=0.;y(1:im,1:jm)=0.;u(1:im,1:jm)=0.;v(1:im,1:jm)=0.;vel(1:im,1:jm)=0.;
-for j=1:jm
-    for i=1:im
-        x(i,j)=(i*(win_size-1)/2)*scale;
-        y(i,j)=(j*(win_size-1)/2)*scale;
-        u(i,j)=vecx(i*win_size,j*win_size)*scale/tscale;
-        v(i,j)=vecy(i*win_size,j*win_size)*scale/tscale;
-        vel_new(i,j)=vec(i*win_size,j*win_size)*scale/tscale;
-    end
-end
 
 %%
 % Define the grid for the flow field plot
@@ -127,21 +102,29 @@ title('Flow Field');
 % Calculate the magnitude of velocities
 magnitude = sqrt(velocities(:,:,1).^2 + velocities(:,:,2).^2);
 
+threshold = 15; 
+high_values = magnitude > threshold;
+magnitude(high_values) = threshold;
+
+[m, n] = size(magnitude);
+magnitude_flipped = flip(magnitude(1:m, 1:n));
+
 % Create a grid for the flow field plot
 [X, Y] = meshgrid(1:size(velocities,2), 1:size(velocities,1));
 
 % Create a figure and plot the heat map
 figure;
-colorf(X, Y, magnitude);
+contourf(X, Y, magnitude_flipped);
+colormap(jet);
 colorbar; % Add a colorbar to indicate velocity magnitude
+
 
 % Set axis labels and title
 xlabel('X');
 ylabel('Y');
 title('Velocity Magnitude Heat Map');
 
-time_elapsed = toc;
-fprint(time_elapsed)
+toc
 
 
 
