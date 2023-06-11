@@ -27,12 +27,6 @@ win_size = 32; % pixels
 scale = 0.5;
 tscale = 73e-6;
 
-% x(1:i_im,1:j_im)=0.;
-% y(1:i_im,1:j_im)=0.;
-% u(1:i_im,1:j_im)=0.;
-% v(1:i_im,1:j_im)=0.;
-% vel(1:i_im,1:j_im)=0.;
-
 itery = 1;
 iterx = 1;
 perc = 0;
@@ -77,8 +71,6 @@ for i = 1:win_size/2:size(im1,1)-win_size % y axis
     itery = 1;
 end
 fprintf('Done!')
-
-
 %%
 
 %%
@@ -123,11 +115,9 @@ colorbar; % Add a colorbar to indicate velocity magnitude
 xlabel('X');
 ylabel('Y');
 title('Velocity Magnitude Heat Map');
-
 toc
 
-
-
+%% Functions
 function [x, y,x_peak,y_peak,correlation,peak_index] = find_correlation(im1_win,im2_win)
     % Perform cross-correlation between the two images
     correlation = normxcorr2(im1_win, im2_win);
@@ -141,55 +131,52 @@ function [x, y,x_peak,y_peak,correlation,peak_index] = find_correlation(im1_win,
 end
 
 function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offset,y_offset)
- maxi = correlation(x_peak, y_peak);   
-%     maxi_0x = correlation(x_peak - 2, y_peak);
-%     maxi_1x = correlation(x_peak - 1, y_peak);
-%     maxi_2x = correlation(x_peak + 1, y_peak);
-%     maxi_3x = correlation(x_peak + 2, y_peak);
-%     maxi_0y = correlation(x_peak, y_peak - 2);
-%     maxi_1y = correlation(x_peak, y_peak - 1);
-%     maxi_2y = correlation(x_peak, y_peak + 1);
-%     maxi_3y = correlation(x_peak, y_peak + 2);
-    
+maxi = correlation(x_peak, y_peak);   
+% Conditions on x
         if (x_peak < length(correlation) && x_peak < length(correlation)-1)&& x_peak > 2 
+            % Analysis if x_peak is within bounds of cross correlation.
             maxi_0x = correlation(x_peak - 2, y_peak);
             maxi_1x = correlation(x_peak - 1, y_peak);
             maxi_2x = correlation(x_peak + 1, y_peak);
             maxi_3x = correlation(x_peak + 2, y_peak);
         elseif x_peak == length(correlation)
+            % if peak is at the right edge of cross-correlation window
             maxi_0x = correlation(x_peak - 2, y_peak);
             maxi_1x = correlation(x_peak - 1, y_peak);
             maxi_2x = 0;
             maxi_3x = 0;
-        elseif x_peak < 2 && x_peak ~= 1
+        elseif x_peak < 2 && x_peak ~= 1 % Might be the wrong ones
+            % if peak is on the right end of cross-correlation window 
             maxi_0x = 0;
             maxi_1x = correlation(x_peak - 1, y_peak);
             maxi_2x = 0;
             maxi_3x = 0;
-    
-        else
+        else % Should never be the case - but put just in case
             maxi_0x = 0;
             maxi_1x = 0;
             maxi_2x = 0;
             maxi_3x = 0;
         end
-    
+% Conditions on y
         if (y_peak < length(correlation) && y_peak < length(correlation)-1) && y_peak > 2
+            % Analysis if x_peak is within bounds of cross correlation.
             maxi_0y = correlation(x_peak, y_peak - 2);
             maxi_1y = correlation(x_peak, y_peak - 1);
             maxi_2y = correlation(x_peak, y_peak + 1);
             maxi_3y = correlation(x_peak, y_peak + 2);
         elseif y_peak == length(correlation)
+            % if peak is at the right edge of cross-correlation window
             maxi_0y = correlation(x_peak, y_peak - 2);
             maxi_1y = correlation(x_peak, y_peak - 1);
             maxi_2y = 0;
             maxi_3y = 0;
          elseif y_peak < 2 && y_peak ~= 1
+            % if peak is on the right end of cross-correlation window 
             maxi_0y = 0;
             maxi_1y = correlation(x_peak, y_peak - 1);
             maxi_2y = 0;
             maxi_3y = 0;
-        else
+        else % Should never be the case - but put just in case
             maxi_0y = 0;
             maxi_1y = 0;
             maxi_2y = 0;
@@ -208,6 +195,8 @@ function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offse
     A_x = fitresult.a;
     mu_x = fitresult.b;
     sigma_x = fitresult.c;
+    x_subpix = x_offset + mu_x - 1;
+
 
     % Plot the data and the fitted curve
 %     figure(7)
@@ -222,36 +211,37 @@ function [x_subpix, y_subpix] = subpixel_int(correlation, x_peak, y_peak,x_offse
 %     title('Gaussian Curve Fitting');
 %     hold off;
 
-    x_subpix = x_offset + mu_x - 1;
-    
-%     figure(8)
+   
     fitresult = fit(y',z_2',gaussEqn,'StartPoint', [0.000001, 1, 1],'Upper',[maxi,2,2]);
     % Extract the fitted parameters
     A_y = fitresult.a;
     mu_y = fitresult.b;
     sigma_y = fitresult.c;
+    y_subpix = y_offset + mu_y - 1;
 
-%     % Plot the data and the fitted curve
-%     plot(y, z_2, 'o', 'DisplayName', 'Data');
-%     hold on;
-%     x_fit = linspace(0, 4, 1000);
-%     y_fit = feval(fitresult, x_fit);
-%     plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
-%     legend('Location', 'best');
-%     xlabel('x');
-%     ylabel('z_1');
-%     title('Gaussian Curve Fitting');
-%     hold off;
-%     
-     y_subpix = y_offset + mu_y - 1;
+%  % Plot the data and the fitted curve
+    
+%    figure(8)
+%    plot(y, z_2, 'o', 'DisplayName', 'Data');
+%    hold on;
+%    x_fit = linspace(0, 4, 1000);
+%    y_fit = feval(fitresult, x_fit);
+%    plot(x_fit, y_fit, 'r', 'DisplayName', 'Gaussian Fit');
+%    legend('Location', 'best');
+%    xlabel('x');
+%    ylabel('z_1');
+%    title('Gaussian Curve Fitting');
+%    hold off;
+
+   
 
 end
 
 
 function [u, v] = calculate_velocities(x_subpix,y_subpix,win_size)
-pitch = 4e-6;
+pitch = 4.4e-6;
 M = 0.05;
-t = 74e-6; % may not be right
+t = 73e-6; % may not be right
 u = x_subpix.*pitch./(M.*t);
 v = y_subpix.*pitch./(M.*t);
 
